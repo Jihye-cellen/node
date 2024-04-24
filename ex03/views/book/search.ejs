@@ -7,9 +7,8 @@
         </form>
     </div>
 </div>
-
 <div id="div_book" class="row"></div>
-<div class = "text-center my-3">
+<div class="text-center my-3">
     <button class="btn btn-primary" id="prev">이전</button>
     <span class="mx-3" id="page">1</span>
     <button class="btn btn-primary" id="next">다음</button>
@@ -30,34 +29,39 @@
     </div> 
 {{/each}}
 </script>
-<!--이미지유무체크함수-->
+<!--이미지유무체크 함수-->
 <script>
-Handlebars.registerHelper("check", function(thumbnail){
-    if(thumbnail){
-        return thumbnail;
-    }else{
-        return "http://via.placeholder.com/125x175";
-    }
-})
+    Handlebars.registerHelper("check", function(thumbnail){
+        if(thumbnail){
+            return thumbnail;
+        }else{
+            return "http://via.placeholder.com/125x175";
+        }
+    });
 </script>
 <script>
     let query=$(frm.query).val();
     let page=1;
     getData();
+    
     //이미지를 클릭한 경우
     $("#div_book").on("click", "img", function(){
         const id=$(this).attr("id");
-        $("#modal"+ id).modal("show");
-    })
-    //다음버튼을 클릭한 경우
+        $("#modal" + id).modal("show");
+    });
+
+    //다음버튼을 클릭한경우
     $("#next").on("click", function(){
         page++;
         getData();
     });
-    $("#prev").on("click", function(){
+
+    //이전버튼을 클릭한경우
+        $("#prev").on("click", function(){
         page--;
         getData();
     });
+
     $(frm).on("submit", function(e){
         e.preventDefault();
         query=$(frm.query).val();
@@ -69,8 +73,8 @@ Handlebars.registerHelper("check", function(thumbnail){
         }
     });
 
-    function getData(){
-        $.ajax({ //데이터를 가져오기
+    function getData(){ //데이터를 가지고오기
+        $.ajax({
             type:"get",
             url:"https://dapi.kakao.com/v3/search/book?target=title",
             dataType:"json",
@@ -79,8 +83,12 @@ Handlebars.registerHelper("check", function(thumbnail){
             success:function(data){
                 //alert("성공");
                 console.log(data);
-                $("#page").html(`<b>${page}</b>`);
+                const temp=Handlebars.compile($("#temp_book").html());
+                $("#div_book").html(temp(data));
+                
                 const last=Math.ceil(data.meta.pageable_count/6);
+                $("#page").html(`<b>${page} / ${last}</b>`);
+
                 if(page==1){
                     $("#prev").attr("disabled", true);
                 }else{

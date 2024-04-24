@@ -1,0 +1,32 @@
+<h1><%=title%></h1>
+<div class="row mb-2">
+    <!--form: 검색창만들기-->
+    <form class="input-group" name="frm">
+        <!--검색창 부분, 기본 default=value -->
+        <input class="form-control" name="query" value="자바" placeholder="검색어">
+        <button class="btn btn-primary">검색</button>
+    </form>
+</div>
+<!--버튼 만들기-->
+<div id="div_book" class="row"></div>
+    <div class="text-center my-3">
+        <button class="btn btn-primary" id="prev">이전</button>
+        <span class="mx-3" id="page">1</span>
+        <button class="btn btn-primary" id="next">다음</button>
+    </div>
+
+<!--도서 템플릿-->
+
+<!--데이터 가져오기-->
+<script>
+    function getData(){
+        $.ajax({
+            type:"get",
+            dataType:"json",
+            url:"https://dapi.kakao.com/v3/search/book",
+            headers:{"Authorization":"KakaoAK 54b6688221dead45827042df7e297c2d"},
+            data:{query:"뉴욕여행", size:size, page:page},
+            
+        })
+    }</script>
+
