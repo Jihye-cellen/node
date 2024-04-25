@@ -1,0 +1,129 @@
+<h1><%=title%></h1>
+<!--6.버튼만들기-->
+<div class="row mb-2">
+    <!--검색창만들기-->
+    <form class="col-8 col-md-4" name="frm">
+        <div class="input-group">
+            <input name="query" class="form-control" placeholder="검색어" value="뉴욕여행">
+            <button class="btn btn-primary">검색</button>
+        </div>
+    </form>
+</div>
+    <!--이전, 다음 버튼 만들기 -->
+<div id="div_blog" style="width:900px;margin:0px auto"></div>
+<div class="text-center my-3">
+    <button class="btn btn-primary" id="prev">이전</button>
+    <span class="mx-3" id="page">1</span>
+    <button class="btn btn-primary" id="next">다음</button>
+</div>
+
+<!--1. 템플릿만들기 : {{}}로 작성해야하며, {{{{}}}}로 하면 데이터의 <b>가 없어짐-->
+<!--div템플릿:script {{console의 doucments내용 확인}}-->
+<!--attribute= style, row, 속성은 정해져있는게 없고, 변수처럼 사용하면 된다.-->
+<!--부트스트랩에서 컬럼수는 최대 12개, 반복하는 대로 나오기 때문에 size의 개수대로 나온다.-->
+<div id="div_blog" style="width:900px;margin:0px auto;">
+<script id="temp_blog" type="X-handlebars-template">
+    {{#each documents}}
+        <div class="row mb-3" url="{{url}}" style="cursor:pointer;"> 
+            <div class="col">
+                <div><a href="{{url}}">{{{title}}}</a></div>
+                <div class="ellipsis3">{{{contents}}}</div>
+                <div class="mt-2" style="font-size:10px;color:gray;">
+                    <span>{{blogname}}</span>
+                    <span class="ms-3">{{fmtDate datetime}}</span>
+                </div>
+            </div>
+           
+            <div class="col">
+                <img src="{{thumbnail}}">
+            </div>
+        </div>
+    {{/each}}
+</script>
+</div>
+
+<script>
+//5. register helper 만들기 (datetime에서 일부 문자만 가져오고 싶을 때 만들며, handlebar.registerHelper(fmrDate)로 가져온다. datetime.substr(0번째부터 n+1로 작성))
+    Handlebars.registerHelper("fmtDate", function(date){
+        //return datetime.substr(0,10);
+
+        const yy=date.substr(0,4);
+        const mm=date.substr(5,2);
+        const dd=date.substr(8,2);
+        const fmtDate =`${yy}년${mm}월${dd}일`
+        return fmtDate
+    })
+</script>
+
+<script>
+    const size=3;
+    let page=1;
+    let query = $(frm.query).val();
+    //4. row를 클릭했을 때 onclick만들기, location.href는 클릭을 했을 때,이동하는것, row에 .을 꼭 붙이기
+    $("#div_blog").on("click", ".row", function(){
+         const url=$(this).attr("url");
+        location.href=url;
+        
+    })
+    //7. 이전, 다음 버튼을 눌렀을 때 작동하는 함수 만들기
+    getData();
+
+        //이전버튼을 클릭한경우
+        $("#prev").on("click", function(){
+        page--;
+        getData();
+    });
+        //다음버튼을 클릭한경우
+    $("#next").on("click", function(){
+        page++;
+        getData();
+    });
+
+    //8. submit 함수 만들기 : 깜빡하는 것을 방지해주는 역할 (검색 미입력 방지)
+    $(frm).on("submit", function(event){
+        event.preventDefault();
+        query=$(frm.query).val();
+        if(query==""){
+            alert("검색어를 입력하세요!");
+        }else{
+            page=1;
+            getData();
+        }
+    });
+
+
+    //2.데이터 가져오는 함수 만들기 $.ajax
+    
+    getData();
+    function getData(){
+        $.ajax({
+            type:"get",
+            url:"https://dapi.kakao.com/v2/search/blog",
+            headers:{"Authorization":"KakaoAK 54b6688221dead45827042df7e297c2d"},
+            dataType:"json",
+            data:{query:query, size:size, page:page},
+            success:function(data){
+                console.log(data);
+                //3. temp에 핸들바컴파일을 넣고서 div_blog가 html안에 넣는데, 핸들바의 데이터를 html을 넣는작업
+                const temp=Handlebars.compile($("#temp_blog").html());
+                $("#div_blog").html(temp(data));
+
+                //9. 페이지 html에 이전버튼, 다음버튼에 숫자넣어주는 작업실행 (총개수/표기개수 올림)
+                const last=Math.ceil(data.meta.pageable_count/size);
+                $("#page").html(`<b>${page} / ${last}</b>`);
+
+                //10. 페이지를 전부 넘겼을 때 더이상 누를 수 없게 설정 (disabled)
+                if(page==1){
+                    $("#prev").attr("disabled", true);
+                }else{
+                    $("#prev").attr("disabled", false);
+                }
+                if(data.meta.is_end){
+                    $("#next").attr("disabled", true);
+                }else{
+                    $("#next").attr("disabled", false);
+            }
+
+     }})
+    }
+</script>
