@@ -1,0 +1,108 @@
+<h1>
+    <%=title%>
+</h1>
+<!--글쓰기 버튼-->
+<div class="row">
+    <div class="col-6 col-md-4">
+        <form name="frm">
+            <div class="input-group">
+                <input name="query" class="form-control" placeholder="검색어를 입력하세요">
+                <button class="btn btn-outline-info">검색</button>
+                <span id="total" class="ps-3"></span>
+            </div>
+        </form>
+    </div>
+    <div class="col pt-2">
+        <span id="total" class="pt-2"></span>
+    </div>
+    <div class="text-end mb-3" id="div_write" style="display:none">
+        <a href="/posts/insert"><button class="btn btn-primary">글쓰기</button></a>
+    </div>
+</div>
+<div id="div_posts" class="row"></div>
+<div class="text-center my-3">
+    <button class="btn btn-primary" id="prev">이전</button>
+    <span class="mx-3" id="page">1</span>
+    <button class="btn btn-primary" id="next">다음</button>
+</div>
+<script id="temp_posts" type="x-handlebars-template">
+        <table class="table table-info table-hover text-center">
+            <tr class="table-light">
+                <td>ID</td><td>Title</td><td>Writer</td><td>Date</td>
+            </tr>
+            {{#each documents}}
+                <tr>
+                    <td>{{pid}}</td>
+                    <td><a href="/posts/read?pid={{pid}}">{{title}}</a></td>
+                    <td>{{writer}}</td>
+                    <td>{{fdate}}</td>
+                </tr>
+            {{/each}}
+        </table>
+    </script>
+</div>
+<script>
+    //데이터 가져오기
+    let page = 1;
+    const size = 10;
+    let query="";
+    getData();
+    function getData() {
+        $.ajax({
+            type: "get",
+            url: "/posts/list.json",
+            dateType: "json",
+            data: { page: page, size, query},
+            success: function (data) {
+                console.log(data);
+                const temp = Handlebars.compile($("#temp_posts").html());
+                $("#div_posts").html(temp(data));
+                const last = Math.ceil(data.total / size)
+                $("#total").html(`<b>${data.total}</b>건`);
+                
+                $("#page").html(`${page}/${last}`);
+                if (page == 1) {
+                    $("#prev").attr("disabled", true);
+                } else {
+                    $("#prev").attr("disabled", false);
+                }
+                if (page == last) {
+                    $("#next").attr("disabled", true);
+                } else {
+                    $("#next").attr("disabled", false);
+                }
+            }
+        });
+    }
+
+</script>
+<script>
+    //로그인이 되고 난 후, 게시판에 글쓰기 버튼이 보이는 함수
+    if (uid) {
+        $("#div_write").show();
+    } else {
+        $("#div_write").hide();
+
+    }
+
+    //이전, 다음 버튼 넘어가기
+    $("#prev").on("click", function () {
+        page--;
+        getData();
+    })
+    $("#next").on("click", function () {
+        page++;
+        getData();
+
+    })
+
+    //submit방지
+
+    $(frm).on("submit", function(e){
+        e.preventDefault();
+        query=$(frm.query).val();
+        page=1; //검색한 후에 페이지 자체는 처음 페이지로 돌아오기 때문에 page=1로 지정
+        getData();
+    })
+
+</script>

@@ -47,7 +47,11 @@ router.get('/read', function(req, res){
     console.log(pid);
     const sql= "select * , date_format(pade, '%Y-%m-%d %T') fdate from posts where pid=?";
     db.get().query(sql, [pid], function(err,rows){
-        res.render('index.ejs', {title:'게시글정보', pageName:'posts/read.ejs', post:rows[0]});
+        res.render('index.ejs', {
+            title:'게시글정보', 
+            pageName:'posts/read.ejs', 
+            post:rows[0],
+        });
     })
     
 
